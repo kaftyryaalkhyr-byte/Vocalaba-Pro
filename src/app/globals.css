@@ -262,6 +262,14 @@ button:disabled { cursor: not-allowed; opacity: .48; }
 .managed-voice-list { display: grid; gap: 7px; margin: 13px 0 0; padding: 0; list-style: none; }
 .managed-voice-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid #2b3240; border-radius: 6px; background: #111722; color: #d6d9e2; font-size: 10px; }
 .managed-voice-list small { color: #858e9f; font-size: 9px; }
+.account-manager { margin-top: 20px; padding-top: 18px; border-top: 1px solid #292f3c; }
+.account-manager h3 { margin: 8px 0 0; color: #e2e4eb; font-size: 13px; }
+.account-manager > .section-copy { margin: 4px 0 13px; }
+.account-invite-form > label { display: block; margin-bottom: 6px; color: #aeb5c3; font-size: 10px; }
+.account-invite-controls { display: flex; gap: 8px; }
+.account-invite-controls input { min-width: 0; min-height: 37px; flex: 1; padding: 0 10px; border: 1px solid #303746; border-radius: 6px; background: #0d121b; color: #f1f2f6; font-size: 10px; }
+.account-invite-controls input::placeholder { color: #697284; }
+.account-invite-controls .primary-button { white-space: nowrap; }
 
 .modal-backdrop { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(4, 6, 11, .74); backdrop-filter: blur(7px); animation: fade-in .16s ease-out; }
 .auth-modal { position: relative; width: min(410px, 100%); padding: 27px; border: 1px solid #343349; border-radius: 10px; background: radial-gradient(ellipse at 50% -12%, rgba(93, 76, 161, .21), transparent 48%), #121722; box-shadow: 0 22px 70px rgba(0, 0, 0, .5); animation: modal-in .2s ease-out; }
@@ -354,6 +362,7 @@ button:disabled { cursor: not-allowed; opacity: .48; }
   .settings-row { gap: 8px; }
   .settings-row > button { padding-right: 7px; padding-left: 7px; font-size: 9px; }
   .voice-manager-form { grid-template-columns: 1fr; }
+  .account-invite-controls { align-items: stretch; flex-direction: column; }
 }
 
 @media (max-width: 390px) {
