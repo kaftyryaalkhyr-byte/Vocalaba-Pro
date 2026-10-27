@@ -9,7 +9,6 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import OwnerAccountManager from "@/app/components/owner-account-manager";
 
 type Section = "studio" | "cloning" | "history" | "billing" | "settings";
 type Voice = { id: string; name: string; detail: string; language: string };
@@ -236,22 +235,13 @@ export default function Home() {
   async function submitAuth(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    if (!supabase) {
-      const message = "Supabase client is not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel, then redeploy.";
-      setError(message);
-      window.alert(message);
-      return;
-    }
+    if (!supabase) { setError("إعداد Supabase غير مكتمل. تحقق من إعدادات البيئة وأعد تشغيل الخادم."); return; }
     setIsAuthLoading(true);
     try {
       const result = authMode === "signup"
         ? await supabase.auth.signUp({ email: authEmail, password: authPassword, options: { emailRedirectTo: `${window.location.origin}${appPath("/auth/callback")}?next=${encodeURIComponent(appPath("/dashboard"))}` } })
         : await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
-      if (result.error) {
-        setError(result.error.message);
-        window.alert(result.error.message);
-        return;
-      }
+      if (result.error) { setError(result.error.message); return; }
       if (authMode === "signup" && !result.data.session) {
         setShowAuth(false);
         setNotice("تحقق من بريدك الإلكتروني لإكمال إنشاء الحساب.");
@@ -261,9 +251,7 @@ export default function Home() {
       router.push(appPath("/dashboard"));
       router.refresh();
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : "Unknown Supabase authentication error.";
-      setError(message);
-      window.alert(message);
+      setError(caught instanceof Error ? caught.message : "تعذّر الاتصال بخدمة تسجيل الدخول.");
     } finally {
       setIsAuthLoading(false);
     }
@@ -351,7 +339,7 @@ export default function Home() {
       <aside className="preview-column"><div className={`preview-card ${audioUrl || demoMode ? "preview-ready" : ""}`}><div className="preview-topline"><span><Headphones size={15} /> معاينة الصوت</span><span className="live-indicator">{audioUrl || demoMode ? "جاهز" : "بانتظارك"}</span></div><div className="wave-art" aria-hidden="true">{Array.from({ length: 32 }, (_, index) => <span key={index} />)}</div><div className="preview-voice"><span className="voice-avatar">{selectedVoice.name.slice(0, 1)}</span><span><strong>{selectedVoice.name}</strong><small>{selectedVoice.detail}</small></span><button className="icon-button" aria-label="اختيار صوت آخر" onClick={() => document.getElementById("voice-select")?.focus()}><ChevronDown size={16} /></button></div>
         {audioUrl ? <audio ref={audioRef} className="audio-player" src={audioUrl} controls /> : demoMode ? <button className="play-demo" onClick={playDemo}><span className="play-icon">{isSpeaking ? <X size={18} /> : <Play size={18} fill="currentColor" />}</span>{isSpeaking ? "إيقاف المعاينة" : "استمع إلى المعاينة"}</button> : <div className="preview-empty"><span><AudioWaveform size={19} /></span><p>سيظهر مشغّل الصوت هنا<br /><small>بعد توليد أول مقطع</small></p></div>}
         <div className="preview-actions"><a className={`secondary-button download-button ${!audioUrl ? "is-disabled" : ""}`} href={audioUrl || undefined} download="vocalaba-audio.mp3" aria-disabled={!audioUrl} onClick={(event) => { if (!audioUrl) { event.preventDefault(); setNotice("تنزيل MP3 متاح بعد إعداد ElevenLabs."); } }}><ArrowDownToLine size={16} /> تنزيل MP3</a><button className="secondary-button" onClick={shareAudio} disabled={!audioUrl && !demoMode}><Share2 size={16} /> مشاركة</button></div></div>
-        <div className="usage-card"><div className="usage-heading"><span><LayoutDashboard size={15} /> {isOwner ? "وصول المالك" : "رصيدك الشهري"}</span><span>{isOwner ? "غير محدود" : "مجاني"}</span></div><div className="usage-value"><strong>{history.reduce((sum, item) => sum + item.text.length, 0).toLocaleString("ar")}</strong><span>{isOwner ? "استخدام غير محدود" : " / ١٠٬٠٠٠ حرف"}</span></div><div className="usage-track"><span style={{ width: isOwner ? "0%" : `${Math.min(history.reduce((sum, item) => sum + item.text.length, 0) / 100, 100)}%` }} /></div>{!isOwner && <button className="upgrade-link" onClick={() => setSection("billing")}>ترقية الخطة <ArrowLeft size={14} /></button>}</div>
+        <div className="usage-card"><div className="usage-heading"><span><LayoutDashboard size={15} /> رصيدك الشهري</span><span>مجاني</span></div><div className="usage-value"><strong>{history.reduce((sum, item) => sum + item.text.length, 0).toLocaleString("ar")}</strong><span> / ١٠٬٠٠٠ حرف</span></div><div className="usage-track"><span style={{ width: `${Math.min(history.reduce((sum, item) => sum + item.text.length, 0) / 100, 100)}%` }} /></div><button className="upgrade-link" onClick={() => setSection("billing")}>ترقية الخطة <ArrowLeft size={14} /></button></div>
         <div className="tip-card"><span className="tip-icon"><Sparkles size={16} /></span><p><strong>نصيحة للصوت</strong><br />استخدم علامات الترقيم لإيقاع طبيعي وتوقفات أوضح.</p></div></aside></section>;
   }
 
@@ -361,7 +349,6 @@ export default function Home() {
     <div className="main-area" id="top"><header className="topbar"><button className="mobile-menu icon-button" aria-label="فتح القائمة" onClick={() => setMobileNavOpen(true)}><Menu size={20} /></button><div className="breadcrumb"><span>مساحة عملي</span><ArrowLeft size={13} /><strong>{navigation.find((item) => item.id === section)?.label}</strong></div><div className="topbar-actions"><span className="status-pill"><span /> جميع الأنظمة تعمل</span><button className="topbar-help icon-button" aria-label="المساعدة" onClick={() => setNotice("تواصل معنا عبر support@vocalaba.example")}><CircleHelp size={17} /></button><button className="login-button" onClick={() => { setAuthMode("signup"); setShowAuth(true); }}><UserRound size={15} /> ابدأ مجانًا</button></div></header>
       <div className="page-content"><section className="welcome-row"><div><p className="eyebrow"><span /> استوديو الصوت العربي</p><h1>{section === "studio" ? <>حوّل نصوصك إلى<br className="mobile-break" /> <span>أصوات خارقة.</span></> : navigation.find((item) => item.id === section)?.label}</h1><p className="welcome-copy">{section === "studio" ? "صوت طبيعي يقرّب فكرتك من الناس. اكتب، اختر صوتك، ودع الباقي علينا." : "كل أدواتك الصوتية في مساحة عمل واحدة."}</p></div><div className="welcome-actions"><button className="quiet-button" onClick={() => setSection("history")}><History size={16} /> آخر التسجيلات</button><button className="circle-help" aria-label="مساعدة" onClick={() => setNotice("اكتب نصًا في الاستوديو، ثم اختر الصوت المناسب.")}><CircleHelp size={17} /></button></div></section>
         {renderContent()}
-        {section === "settings" && isOwner && <OwnerAccountManager apiPath={appPath("/api/admin/users/invite")} redirectTo={`${window.location.origin}${appPath("/auth/callback")}?next=${encodeURIComponent(appPath("/dashboard"))}`} />}
         {section === "studio" && <><section className="features-strip" aria-label="مميزات Vocalaba"><div className="feature-item"><span className="feature-icon feature-languages"><AudioLines size={17} /></span><span><strong>أصوات بلغات متعددة</strong><small>عربي وإنجليزي، بنبرات طبيعية</small></span></div><div className="feature-item"><span className="feature-icon feature-clone"><Mic2 size={17} /></span><span><strong>صوت يشبهك</strong><small>أنشئ صوتًا مخصصًا لمحتواك</small></span></div><div className="feature-item"><span className="feature-icon feature-quality"><Volume2 size={17} /></span><span><strong>جودة تليق بفكرتك</strong><small>صوت واضح لكل منصة</small></span></div></section><section className="bottom-cta"><div><span className="section-kicker"><Sparkles size={14} /> لك مساحة أكبر</span><h2>صوتك يستحق أكثر.</h2><p>ابدأ مجانًا، وانتقل إلى Pro عندما تكون جاهزًا.</p></div><button className="primary-button" onClick={() => setSection("billing")}>قارن الخطط <ArrowLeft size={16} /></button></section></>}
         <footer className="app-footer"><span>© 2026 Vocalaba</span><span><button onClick={() => setNotice("سياسة الخصوصية قيد الإعداد.")}>الخصوصية</button><button onClick={() => setNotice("تواصل معنا عبر support@vocalaba.example")}>الدعم</button></span><span className="footer-version">صُنع للصوت العربي <AudioWaveform size={13} /></span></footer>
       </div>
